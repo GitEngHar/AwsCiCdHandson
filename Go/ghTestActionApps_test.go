@@ -11,8 +11,8 @@ func Test_personalColor(t *testing.T) {
 		args                  args
 		wantPersonalColorData string
 	}{
-		{"test1",args{HumanStatus{"haruki",12,31}},"153,255,255"},
-		{"test2",args{HumanStatus{"erina",1,1}},"127,21,8"},
+		{"test1", args{HumanStatus{"haruki", 12, 31}}, "153,255,255"},
+		{"test2", args{HumanStatus{"erina", 1, 1}}, "127,21,8"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
