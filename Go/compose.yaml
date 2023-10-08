@@ -1,5 +1,7 @@
-services: 
-    app: 
+services:
+    app:
+        image: personalgo
+        container_name: personalcolor
         build: ./
         tty: true
         volumes:
