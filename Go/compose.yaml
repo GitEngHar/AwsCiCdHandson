@@ -1,6 +1,10 @@
 services: 
-    app: # サービス名
+    app: 
         build: ./
-        tty: true # コンテナの永続化
+        tty: true
         volumes:
             - ./:/go/app
+        environment:
+            - MyName=satoshi
+            - MONTH=12
+            - DAY=10
