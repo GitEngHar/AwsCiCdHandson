@@ -1,0 +1,6 @@
+services: 
+    app: # サービス名
+        build: ./
+        tty: true # コンテナの永続化
+        volumes:
+            - ./:/go/app
