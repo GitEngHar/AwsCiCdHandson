@@ -25,8 +25,9 @@ jobs:
           images: haruapp/gopersonalcolor
       - name: Build 
         env: 
+          tag: ${{ steps.meta.outputs.labels.org.opencontainers.image.version }}
           tags: ${{ steps.meta.outputs.tags }}
-        run: docker compose -f ./Go/compose.yaml build && docker image ls && echo $tags
+        run: docker compose -f ./Go/compose.yaml build && docker image ls && echo $tags && export IMAGENAME=`docker image ls | tail -n 1 | awk '{print $1}'` && echo $tag
       # docker compose -f ./Go/compose.yaml build && export IMAGENAME=`docker image ls | tail -n 1 | awk '{print $1}'` && docker tag $IMAGENAME $tags && docker image ls
       # docker push $tags
       # - name: Build
