@@ -26,7 +26,8 @@ jobs:
       - name: Build 
         env: 
           tags: ${{ steps.meta.outputs.tags }}
-        run: docker compose -f ./Go/compose.yaml build && export IMAGENAME=`docker image ls | tail -n 1 | awk '{print $1}'` && docker tag $IMAGENAME $tags && docker push $tags
+        run: docker compose -f ./Go/compose.yaml build && export IMAGENAME=`docker image ls | tail -n 1 | awk '{print $1}'` && docker tag $IMAGENAME $tags && docker image ls
+      # docker push $tags
       # - name: Build
       #   uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671
       #   env: 
