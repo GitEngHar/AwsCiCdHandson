@@ -36,7 +36,6 @@ jobs:
           images: haruapp/gopersonalcolor
       - name: Build 
         env: 
-          
           tags: ${{ steps.meta.outputs.tags }}
         run: docker compose -f ./Go/compose.yaml build && export IMAGENAME=`docker image ls | head -n 2  | tail -n 1 | awk '{print $1}'` && docker tag $IMAGENAME $tags && docker push $tags
       #   tag: ${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
