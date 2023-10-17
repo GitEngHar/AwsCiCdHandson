@@ -49,7 +49,7 @@ jobs:
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
       - name: Download task definition
         run: |
-          aws ecs describe-task-definition --task-definition viewcertweb-v7 --query taskDefinition > task-definition.json
+          aws ecs describe-task-definition --task-definition frontTask --query taskDefinition > task-definition.json
       # TaskDefinition の image を push した最新のものに書き換える
       - name: Render TaskDefinition
         id: render-container-api
