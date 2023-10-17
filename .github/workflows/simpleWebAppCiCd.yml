@@ -1,0 +1,49 @@
+name: Deploy app to Amazon ECS
+
+# pull_request:
+#   types: [ closed ]
+#   branches:
+#     - 'main'
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+# permission can be added at job level or workflow level
+permissions:
+  id-token: write
+
+jobs:
+  ecr-push:
+    name: Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1-node16
+        with:
+          #arn:aws:iam::429535751272:role/GithubCICD
+          #arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:<GitHub Actions用のIAMロール名>/
+          role-to-assume: arn:aws:iam::429535751272:role/GithubCICD
+          role-session-name: GitHubActions-${{ github.run_id }}
+          aws-region: ap-northeast-1
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+      # DockerイメージをビルドしてECRにプッシュ
+      - name: Docker image build and push to Amazon ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: viewcertweb
+          IMAGE_TAG: ${{ github.sha }}
+        #aws ecr get-login-password --region ap-northeast-1 | docker login --username AWS --password-stdin 429535751272.dkr.ecr.ap-northeast-1.amazonaws.com
+        run: |
+          echo $ECR_REGISTRY/$ECR_REPOSITORY
+          docker login -u AWS -p $(aws ecr get-login-password) https://429535751272.dkr.ecr.ap-northeast-1.amazonaws.com
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f Dockerfile --build-arg AWS_ACCOUNT_ID="429535751272" --build-arg IMAGE_TAG=$IMAGE_TAG ./SimpleWebApp/Front/
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
