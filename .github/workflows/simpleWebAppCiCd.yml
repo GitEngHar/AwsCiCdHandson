@@ -56,13 +56,13 @@ jobs:
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
           task-definition: task-definition.json
-          container-name: viewcertweb
+          container-name: simpleWebapp
           image: ${{ steps.login-ecr.outputs.registry }}/path/to/demo-app:${{ github.sha }}
       # デプロイする
       - name: Deploy Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
           task-definition: ${{ steps.render-container-api.outputs.task-definition }}
-          service: ss
+          service: BG-deploy-front-svc
           cluster: BG-deploy-front-cluster
 
