@@ -47,3 +47,21 @@ jobs:
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f ./SimpleWebApp/Front/Dockerfile --build-arg AWS_ACCOUNT_ID="429535751272" --build-arg IMAGE_TAG=$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+      - name: Download task definition
+        run: |
+          aws ecs describe-task-definition --task-definition viewcertweb-v7 --query taskDefinition > task-definition.json
+      # TaskDefinition の image を push した最新のものに書き換える
+      - name: Render TaskDefinition
+        id: render-container-api
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          container-name: viewcertweb
+          image: ${{ steps.login-ecr.outputs.registry }}/path/to/demo-app:${{ github.sha }}
+      # デプロイする
+      - name: Deploy app with CodeDeploy Blue/Green deployment
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.render-container-api.outputs.task-definition }}
+          cluster: BG-deploy-front-cluster
+          service: BG-deploy-front-svc
