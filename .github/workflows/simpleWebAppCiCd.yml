@@ -59,9 +59,10 @@ jobs:
           container-name: viewcertweb
           image: ${{ steps.login-ecr.outputs.registry }}/path/to/demo-app:${{ github.sha }}
       # デプロイする
-      - name: Deploy app with CodeDeploy Blue/Green deployment
+      - name: Deploy Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
           task-definition: ${{ steps.render-container-api.outputs.task-definition }}
-          cluster: BG-deploy-front-cluster
           service: BG-deploy-front-svc
+          cluster: BG-deploy-front-cluster
+          
