@@ -65,3 +65,4 @@ jobs:
           task-definition: ${{ steps.render-container-api.outputs.task-definition }}
           service: FrontSvc
           cluster: FrontCluster
+          codedeploy-appspec: appspec.yaml
