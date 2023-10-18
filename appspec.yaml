@@ -7,3 +7,4 @@ Resources:
         LoadBalancerInfo:
             ContainerName: "simpleWebapp" 
             ContainerPort: 80
+            
