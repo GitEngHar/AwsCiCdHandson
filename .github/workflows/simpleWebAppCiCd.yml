@@ -63,6 +63,6 @@ jobs:
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
           task-definition: ${{ steps.render-container-api.outputs.task-definition }}
-          service: BG-deploy-front-svc
-          cluster: BG-deploy-front-cluster
+          service: FrontSvc
+          cluster: FrontCluster
 
