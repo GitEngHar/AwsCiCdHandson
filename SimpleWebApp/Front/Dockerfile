@@ -1,3 +1,3 @@
 from httpd
 WORKDIR /usr/local/apache2/htdocs/
-COPY . .
+COPY ./index.html .
