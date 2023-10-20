@@ -55,7 +55,6 @@ jobs:
           aws ecs describe-task-definition --task-definition frontTask --query taskDefinition > task-definition.json
       
       # TaskDefinition の image を push した最新のものに書き換える
-      # TODO:appspec.yamlに最新版のtaskdefのarnを渡したい
       - name: Render TaskDefinition
         id: render-container-api
         uses: aws-actions/amazon-ecs-render-task-definition@v1
