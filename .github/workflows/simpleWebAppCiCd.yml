@@ -48,11 +48,11 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         #aws ecr get-login-password --region ap-northeast-1 | docker login --username AWS --password-stdin 429535751272.dkr.ecr.ap-northeast-1.amazonaws.com
         run: |
-          echo $ECR_REGISTRY/$ECR_REPONAME
+          echo $ECR_REGISTRY/${{ env.ECR_REPONAME }}
           docker login -u AWS -p $(aws ecr get-login-password) https://:${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.ap-northeast-1.amazonaws.com
-          docker build -t $ECR_REGISTRY/$ECR_REPONAME:$IMAGE_TAG -f ./SimpleWebApp/Front/Dockerfile --build-arg AWS_ACCOUNT_ID=${{ secrets.AWS_ACCOUNT_ID }} --build-arg IMAGE_TAG=$IMAGE_TAG .
-          docker push $ECR_REGISTRY/$ECR_REPONAME:$IMAGE_TAG
-          echo "image=$ECR_REGISTRY/$ECR_REPONAME:$IMAGE_TAG" >> $GITHUB_OUTPUT
+          docker build -t $ECR_REGISTRY/${{ env.ECR_REPONAME }}:${{ env.IMAGE_TAG }} -f ./SimpleWebApp/Front/Dockerfile --build-arg AWS_ACCOUNT_ID=${{ secrets.AWS_ACCOUNT_ID }} --build-arg IMAGE_TAG=${{ env.IMAGE_TAG }} .
+          docker push $ECR_REGISTRY/${{ env.ECR_REPONAME }}:${{ env.IMAGE_TAG }}
+          echo "image=$ECR_REGISTRY/${{ env.ECR_REPONAME }}:${{ env.IMAGE_TAG }}" >> $GITHUB_OUTPUT
       - name: Download task definition
         run: |
           aws ecs describe-task-definition --task-definition frontTask --query taskDefinition > task-definition.json
@@ -64,7 +64,7 @@ jobs:
         with:
           task-definition: task-definition.json
           container-name: ${{ env.ECS_CONTAINERNAME }}
-          image: ${{ steps.login-ecr.outputs.registry }}/$ECR_REPONAME:$IMAGE_TAG
+          image: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPONAME }}:${{ env.IMAGE_TAG }}
       # デプロイする
       # TODO:動的にクラスタ名とサービス名を変更したい。戦法は、ユーザー記述にしましょう
       - name: Deploy Amazon ECS task definition
