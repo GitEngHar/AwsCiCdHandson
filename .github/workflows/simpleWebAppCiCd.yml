@@ -36,6 +36,7 @@ jobs:
       # DockerイメージをビルドしてECRにプッシュ
       - name: Docker image build and push to Amazon ECR
         id: build-image
+      # TODO:定義変数をGlobalにしたい
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: viewcertweb
@@ -59,7 +60,7 @@ jobs:
         with:
           task-definition: task-definition.json
           container-name: simpleWebapp
-          image: ${{ steps.login-ecr.outputs.registry }}/path/to/demo-app:${{ github.sha }}
+          image: ${{ steps.login-ecr.outputs.registry }}/viewcertweb:${{ github.sha }}
       # デプロイする
       # TODO:動的にクラスタ名とサービス名を変更したい。戦法は、ユーザー記述にしましょう
       - name: Deploy Amazon ECS task definition
