@@ -3,3 +3,7 @@ services:
         image: personalgo
         container_name: personalcolor
         build: ./
+        environment:
+            - MyName=satoshi
+            - MONTH=12
+            - DAY=30

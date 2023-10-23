@@ -1,0 +1,65 @@
+name: Deploy app to Amazon ECS
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+# permission can be added at job level or workflow level
+permissions:
+  id-token: write
+env:
+  ECR_REPONAME: viewcertweb
+  ECS_CLUSTERNAME: FrontCluster
+  ECS_SERVICENAME: FrontSvc
+  ECS_CONTAINERNAME: simpleWebapp 
+  ROLE_NAME: GithubCICD
+  IMAGE_TAG: ${{ github.sha }}
+jobs:
+  ecr-push:
+    name: Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1-node16
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ env.ROLE_NAME }}
+          role-session-name: GitHubActions-${{ github.run_id }}
+          aws-region: ap-northeast-1
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+      # DockerイメージをビルドしてECRにプッシュ
+      - name: Docker image build and push to Amazon ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        #aws ecr get-login-password --region ap-northeast-1 | docker login --username AWS --password-stdin 429535751272.dkr.ecr.ap-northeast-1.amazonaws.com
+        run: |
+          echo $ECR_REGISTRY/${{ env.ECR_REPONAME }}
+          docker login -u AWS -p $(aws ecr get-login-password) https://${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.ap-northeast-1.amazonaws.com
+          docker build -t $ECR_REGISTRY/${{ env.ECR_REPONAME }}:${{ env.IMAGE_TAG }} -f ./SimpleWebApp/Front/Dockerfile --build-arg AWS_ACCOUNT_ID=${{ secrets.AWS_ACCOUNT_ID }} --build-arg IMAGE_TAG=${{ env.IMAGE_TAG }} .
+          docker push $ECR_REGISTRY/${{ env.ECR_REPONAME }}:${{ env.IMAGE_TAG }}
+          echo "image=$ECR_REGISTRY/${{ env.ECR_REPONAME }}:${{ env.IMAGE_TAG }}" >> $GITHUB_OUTPUT
+      - name: Download task definition
+        run: |
+          aws ecs describe-task-definition --task-definition frontTask --query taskDefinition > task-definition.json
+      
+      # TaskDefinition の image を push した最新のものに書き換える
+      - name: Render TaskDefinition
+        id: render-container-api
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          container-name: ${{ env.ECS_CONTAINERNAME }}
+          image: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPONAME }}:${{ env.IMAGE_TAG }}
+      # デプロイする
+      - name: Deploy Amazon ECS task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.render-container-api.outputs.task-definition }}
+          service: ${{ env.ECS_SERVICENAME }}
+          cluster: ${{ env.ECS_CLUSTERNAME }}
+          codedeploy-appspec: appspec.yaml
+          wait-for-service-stability: true
