@@ -1,5 +1,7 @@
 name: Deploy app to Amazon ECS
 on:
+  # push:
+  #   branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
 # permission can be added at job level or workflow level
