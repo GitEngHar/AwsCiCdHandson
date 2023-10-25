@@ -3,6 +3,11 @@ GithubAction や awsを用いたCICDを手を動かしていろいろやって�
 
 ## CICDを知ろう
 
+### 実行の構成
+
+githubAction で AWS で設定しているCodeDeployを動かしているので、実態はAWSにあると思われる
+![simpleWebapp drawio](https://github.com/GitEngHar/CiCdHandsOn/assets/119464648/aa731a1d-bc43-4c35-9e22-d2d3663555bd)
+
 ### CICDって何ですか??
 
 継続的インテグレーション CI / 継続的デリバリー CD
