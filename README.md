@@ -1,5 +1,5 @@
 # CiCdHandsOn
-GithubAction や awsを用いたCICDを手を動かしていろいろやっていくリポジトリ
+GithubAction や awsを用いたCICDツールをいろいろやっていくリポジトリ
 
 ## CICDを知ろう
 
