@@ -32,6 +32,11 @@ CI CDでアプリ開発のステージを一部自動化することで、顧客
 
 ## 百聞は一見に如かず
 
+実演用endpoint
+```bash
+http://cicdha-webAp-eQSCGIFzwy98-1124916881.ap-northeast-1.elb.amazonaws.com
+```
+
 ### CICDを使った世界
 
 CI/CD実行 : githubActionで定義
