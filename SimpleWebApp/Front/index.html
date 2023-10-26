@@ -46,10 +46,10 @@
                 const certJsonData = JSON.parse(fixCertJsonTypeData,(key,value) => {
                     switch(key){
                         case "skillType":
-                            viewText += `資格スキルの種類 : ${value} <br>`;
+                            viewText += `資格スキルの種類 : ${value} \n`;
                             break;
                         case "certName":
-                            viewText += `資格名 : ${value} <br><br>`
+                            viewText += `資格名 : ${value} \n\n`
                     }
                 })
                 target.innerHTML = viewText;
