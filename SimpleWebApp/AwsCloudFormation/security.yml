@@ -1,0 +1,218 @@
+Description:  security for simpleWebapp 
+Parameters:
+    EnvironmentName:
+      Description: all resource name next prefix
+      Type: String
+      Default: BG-deploy-security
+    MyIP:
+      Description: DB Client ssh source ipaddress
+      Type: String
+      MinLength: 4
+Resources:
+  # セキュリティグループの作成
+  SecurityGroupDBClient:
+    Type: AWS::EC2::SecurityGroup
+    Properties: 
+      GroupDescription: the sg for front alb
+      GroupName: !Sub ${EnvironmentName}-db-client
+      SecurityGroupIngress: 
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: !Ref MyIP
+      Tags: 
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-db-client
+      VpcId: !ImportValue Vpc-ID
+  SecurityGroupFrontALB:
+    Type: AWS::EC2::SecurityGroup
+    Properties: 
+      GroupDescription: the sg for front alb
+      GroupName: !Sub ${EnvironmentName}-front-alb
+      SecurityGroupIngress: 
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+      Tags: 
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-front-alb
+      VpcId: !ImportValue Vpc-ID
+  SecurityGroupFrontService:
+    Type: AWS::EC2::SecurityGroup
+    Properties: 
+      GroupDescription: the sg for front svc 
+      GroupName: !Sub ${EnvironmentName}-front-svc
+      SecurityGroupIngress: 
+        - IpProtocol: TCP
+          FromPort: 80
+          ToPort: 80
+          SourceSecurityGroupId: !Ref SecurityGroupFrontALB
+      Tags: 
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-front-svc
+      VpcId: !ImportValue Vpc-ID
+  SecurityGroupBackALB:
+    Type: AWS::EC2::SecurityGroup
+    Properties: 
+      GroupDescription: the sg for back alb
+      GroupName: !Sub ${EnvironmentName}-back-alb
+      SecurityGroupIngress: 
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+      Tags: 
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-back-alb
+      VpcId: !ImportValue Vpc-ID
+  SecurityGroupBackService:
+    Type: AWS::EC2::SecurityGroup
+    Properties: 
+      GroupDescription: the sg for back svc 
+      GroupName: !Sub ${EnvironmentName}-back-svc
+      SecurityGroupIngress: 
+        - IpProtocol: TCP
+          FromPort: 8000
+          ToPort: 8000
+          SourceSecurityGroupId: !Ref SecurityGroupBackALB
+      Tags: 
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-back-svc
+      VpcId: !ImportValue Vpc-ID
+  SecurityGroupBackRds:
+    Type: AWS::EC2::SecurityGroup
+    Properties: 
+      GroupDescription: the sg for back rds 
+      GroupName: !Sub ${EnvironmentName}-back-rds
+      SecurityGroupIngress: 
+        - IpProtocol: TCP
+          FromPort: 3306
+          ToPort: 3306
+          SourceSecurityGroupId: !Ref SecurityGroupBackService
+        - IpProtocol: TCP
+          FromPort: 3306
+          ToPort: 3306
+          SourceSecurityGroupId: !Ref SecurityGroupBackALB
+        - IpProtocol: TCP
+          FromPort: 3306
+          ToPort: 3306
+          SourceSecurityGroupId: !Ref SecurityGroupDBClient
+      Tags: 
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-back-rds
+      VpcId: !ImportValue Vpc-ID
+  SecurityGroupECREndpoint:
+    Type: AWS::EC2::SecurityGroup
+    Properties: 
+      GroupDescription: the sg for endpoint svc 
+      GroupName: !Sub ${EnvironmentName}-ecrendpoint-svc
+      SecurityGroupIngress: 
+        - IpProtocol: TCP
+          FromPort: 1
+          ToPort: 65535
+          CidrIp: 0.0.0.0/0
+      Tags: 
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-ecrendpoint-svc
+      VpcId: !ImportValue Vpc-ID  
+  # タスク実行ロール
+  ECSTaskExecutionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: ''
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy'
+  CodeDeployServiceRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: ''
+            Effect: Allow
+            Principal:
+              Service: codedeploy.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/service-role/AWSCodeDeployRole'
+        - 'arn:aws:iam::aws:policy/AWSCodeDeployRoleForECS'
+      RoleName: iam-role-codedeploy
+      Tags:
+        - Key: Name
+          Value: iam-role-codedeploy      
+
+  CodeBuildServiceRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: ''
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/AWSCodeBuildAdminAccess'
+        - 'arn:aws:iam::aws:policy/SecretsManagerReadWrite'
+        - 'arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryFullAccess'
+      RoleName: iam-role-codedbuild
+      Tags:
+        - Key: Name
+          Value: iam-role-codedbuild     
+
+Outputs:
+  SecurityGroupFrontALB:
+    Value: !Ref SecurityGroupFrontALB
+    Export:
+      Name: SecurityGroupFrontALB-ID
+  SecurityGroupFrontService:
+    Value: !Ref SecurityGroupFrontService
+    Export:
+      Name: SecurityGroupFrontService-ID
+  SecurityGroupBackALB:
+    Value: !Ref SecurityGroupBackALB
+    Export:
+      Name: SecurityGroupBackALB-ID  
+  SecurityGroupBackService:
+    Value: !Ref SecurityGroupBackService
+    Export:
+      Name: SecurityGroupBackService-ID  
+  SecurityGroupBackRds:
+    Value: !Ref SecurityGroupBackRds
+    Export:
+      Name: SecurityGroupBackRds-ID  
+  SecurityGroupDBClient:
+    Value: !Ref SecurityGroupDBClient
+    Export:
+      Name: SecurityGroupDBClient-ID
+  SecurityGroupECREndpoint:
+    Value: !Ref SecurityGroupECREndpoint
+    Export:
+      Name: SecurityGroupECREndpoint-ID    
+  ECSTaskExecutionRoleOutput:
+    Value: !GetAtt 
+             - ECSTaskExecutionRole
+             - Arn
+    Export:
+      Name: ECSTaskExecutionRole-Arn
+  CodeDeployServiceRoleOutput:
+    Value: !GetAtt 
+             - CodeDeployServiceRole
+             - Arn
+    Export:
+      Name: CodeDeployServiceRole-Arn    
+  CodeBuildServiceRoleOutput:
+    Value: !GetAtt 
+             - CodeBuildServiceRole
+             - Arn
+    Export:
+      Name: CodeBuildServiceRole-Arn    

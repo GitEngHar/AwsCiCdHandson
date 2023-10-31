@@ -46,10 +46,10 @@
                 const certJsonData = JSON.parse(fixCertJsonTypeData,(key,value) => {
                     switch(key){
                         case "skillType":
-                            viewText += `資格スキルの種類 : ${value} <br>`;
+                            viewText += `資格スキルの種類 : ${value} \n`;
                             break;
                         case "certName":
-                            viewText += `資格名 : ${value} <br><br>`
+                            viewText += `資格名 : ${value} \n\n`
                     }
                 })
                 target.innerHTML = viewText;
@@ -70,7 +70,7 @@
                     return 0
                 }
                 if(!inputCheck(skillTypeText,"none") || !inputCheck(certName,"none")){
-                    target.innerHTML = "バックエンドへ送るテキストを入力してください";
+                    target.innerHTML = "データベースへ送る資格情報を入力してください";
                     return 0
                 }
                 var data = {
@@ -124,8 +124,8 @@
                 background-color: white;
             }
             .buttonitem:hover{
-                background-color: aliceblue;
-                /*background-color: greenyellow;*/
+                /*background-color: aliceblue;*/
+                background-color: greenyellow;
             }
             .itemtitle{
                 margin-left: 0px;
